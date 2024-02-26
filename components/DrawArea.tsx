@@ -1,8 +1,9 @@
 import useCanvasDimensions from "@/hooks/useCanvasDimension";
+import useStore from "@/store";
 import { useRef } from "react";
 
 const DrawArea = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useStore((state) => state.canvasRef);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useCanvasDimensions(canvasRef, containerRef);

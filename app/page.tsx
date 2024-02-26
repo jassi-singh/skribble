@@ -2,7 +2,7 @@
 
 import PlayersList from "@/components/PlayerList";
 import DrawArea from "@/components/DrawArea";
-import Chat from "@/components/Chat";
+import MsgList from "@/components/MsgList";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
       <div className="relative flex-grow w-full p-4 grid grid-cols-4 gap-4 overflow-auto">
         <PlayersList />
         <DrawArea />
-        <Chat />
+        <MsgList />
       </div>
     </main>
   );

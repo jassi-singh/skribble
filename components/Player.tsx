@@ -1,11 +1,13 @@
 import { Pencil } from "@phosphor-icons/react";
 import Image from "next/image";
-import { PlayerType } from "@/types";
+import { TPlayer } from "@/types";
 
-const Player = ({ player }: { player: PlayerType }) => {
+const Player = ({ player }: { player: TPlayer }) => {
   return (
     <div className="flex items-center gap-4">
-      <span className="text-zinc-500 text-xl w-10 text-start">#{player.rank}</span>
+      <span className="text-zinc-500 text-xl w-10 text-start">
+        #{player.rank}
+      </span>
       <Image
         height={40}
         width={40}
