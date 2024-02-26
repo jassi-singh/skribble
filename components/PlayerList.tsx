@@ -1,29 +1,29 @@
-import { Pencil, UsersThree } from "@phosphor-icons/react";
-import Image from "next/image";
+import { UsersThree } from "@phosphor-icons/react";
+import Player from "./Player";
+import { faker } from "@faker-js/faker";
+import { PlayerType } from "@/types";
+
+const createRandomData = (): PlayerType => ({
+  id: faker.string.uuid(),
+  name: faker.person.firstName(),
+  profilePic: faker.image.avatar(),
+  isDrawing: false,
+  rank: faker.number.int({ max: 20 }),
+  score: faker.number.int({ max: 999 }),
+});
+
+const players = faker.helpers.multiple(createRandomData, { count: 20 });
 
 const PlayersList = () => {
   return (
-    <section className="rounded-md ring ring-zinc-900 text-center p-4 space-y-4">
-      <div className="sticky top-0 flex gap-2 items-center">
+    <section className="rounded-md ring ring-zinc-900 text-center px-4 space-y-4 pb-4 overflow-auto">
+      <div className="sticky top-0 flex gap-2 items-center bg-zinc-950/50 backdrop-blur py-4">
         Players <UsersThree weight="bold" />
       </div>
 
-      <div className="flex items-center gap-4">
-        <span className="text-zinc-500 text-xl">#1</span>
-        <Image
-          height={40}
-          width={40}
-          src={"https://github.com/shadcn.png"}
-          alt="avatar"
-          className="rounded-full"
-        />
-        <div className="space-y-2 text-start">
-          <div className="text-sm">Jaswinder</div>
-          <div className="text-xs">180</div>
-        </div>
-
-        <Pencil className="ml-auto" />
-      </div>
+      {players.map((player) => (
+        <Player player={player} />
+      ))}
     </section>
   );
 };
