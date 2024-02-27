@@ -1,8 +1,10 @@
 import useStore from "@/store";
 import { TMsg } from "@/types";
 import { faker } from "@faker-js/faker";
-import { Chat, PaperPlaneTilt } from "@phosphor-icons/react";
+import { ChatBubbleIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 const MsgList = () => {
   const msgList = useStore((state) => state.msgList);
@@ -16,9 +18,9 @@ const MsgList = () => {
   }, [msgList]);
 
   return (
-    <section className="rounded-md ring ring-zinc-900 text-center px-4 space-y-4 overflow-auto flex flex-col">
-      <div className="sticky top-0 flex gap-2 items-center bg-zinc-950/50 backdrop-blur py-4">
-        Chat <Chat weight="bold" />
+    <section className="rounded-md border text-center px-4 space-y-4 overflow-auto flex flex-col">
+      <div className="sticky top-0 flex gap-2 items-center bg-white/50 dark:bg-zinc-950/50 backdrop-blur py-4">
+        Chat <ChatBubbleIcon />
       </div>
 
       <div className="flex flex-col flex-1 justify-end">
@@ -54,6 +56,7 @@ const Form = () => {
 
   const handleSendMessage = (e: FormEvent) => {
     e.preventDefault();
+    if (msg.trim() === "") return;
     const newMsg: TMsg = {
       id: faker.string.uuid(),
       sender: {
@@ -67,20 +70,17 @@ const Form = () => {
     setMsg("");
   };
   return (
-    <form className="flex gap-4 text-zinc-950 sticky bottom-0 bg-zinc-950 py-4">
-      <input
+    <form className="flex gap-4 sticky bottom-0 bg-white dark:bg-zinc-950 py-4">
+      <Input
         name="msg"
         value={msg}
-        className="w-full rounded-md outline-none px-2 text-sm"
         placeholder="Type here"
+        autoComplete="off"
         onChange={handleChange}
       />
-      <button
-        onClick={handleSendMessage}
-        className="bg-white rounded-md p-2 text-xl"
-      >
-        <PaperPlaneTilt weight="fill" />
-      </button>
+      <Button onClick={handleSendMessage}>
+        <PaperPlaneIcon />
+      </Button>
     </form>
   );
 };

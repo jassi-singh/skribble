@@ -1,8 +1,8 @@
 "use client";
 
-import PlayersList from "@/components/PlayerList";
-import DrawArea from "@/components/DrawArea";
-import MsgList from "@/components/MsgList";
+import PlayersList from "@/components/player-list";
+import DrawArea from "@/components/draw-area";
+import MsgList from "@/components/msg-list";
 
 export default function Home() {
   return (

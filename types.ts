@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import { Duration } from "moment";
 
 export interface TPlayer {
   id: string;
@@ -18,9 +18,12 @@ export interface TMsg {
 export interface TStore {
   msgList: TMsg[];
   players: TPlayer[];
-  canvasRef: RefObject<HTMLCanvasElement>;
+  canvasCtx: CanvasRenderingContext2D | null;
+  timer: number;
 
   addMsg: (msg: TMsg) => void;
   addPlayer: (player: TPlayer) => void;
   updatePlayer: (player: TPlayer) => void;
+  setCanvasCtx: (ctx: CanvasRenderingContext2D) => void;
+  startTimer: () => void;
 }

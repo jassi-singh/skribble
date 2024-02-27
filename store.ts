@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import { TMsg, TPlayer, TStore } from "./types";
-import { createRef, useRef } from "react";
 
-const useStore = create<TStore>((set) => ({
+const useStore = create<TStore>((set, get) => ({
   msgList: [],
   players: [],
-  canvasRef: createRef<HTMLCanvasElement>(),
+  canvasCtx: null,
+  setCanvasCtx: (ctx: CanvasRenderingContext2D) => set({ canvasCtx: ctx }),
+  timer: 180,
 
   addMsg: (msg: TMsg) => set((state) => ({ msgList: [...state.msgList, msg] })),
   addPlayer: (player: TPlayer) =>
@@ -14,6 +15,24 @@ const useStore = create<TStore>((set) => ({
     set((state) => ({
       players: state.players.map((p) => (p.id === player.id ? player : p)),
     })),
+  startTimer: () => {
+    const audio = new Audio("/tick.mp3");
+    audio.loop = true;
+    audio.volume = 0.3;
+    const timerId = setInterval(() => {
+      const timeLeft = get().timer;
+
+      if (timeLeft == 0) {
+        clearInterval(timerId);
+        audio.pause();
+        set({ timer: 180 });
+        return;
+      } else if (timeLeft == 9) {
+        audio.play();
+      }
+      set((state) => ({ timer: state.timer - 1 }));
+    }, 1000);
+  },
 }));
 
 export default useStore;

@@ -1,11 +1,11 @@
-import { Pencil } from "@phosphor-icons/react";
 import Image from "next/image";
 import { TPlayer } from "@/types";
+import { Pencil1Icon } from '@radix-ui/react-icons';
 
 const Player = ({ player }: { player: TPlayer }) => {
   return (
     <div className="flex items-center gap-4">
-      <span className="text-zinc-500 text-xl w-10 text-start">
+      <span className="text-secondary text-xl w-10 text-start">
         #{player.rank}
       </span>
       <Image
@@ -20,7 +20,7 @@ const Player = ({ player }: { player: TPlayer }) => {
         <div className="text-xs">{player.score}</div>
       </div>
 
-      {player.isDrawing && <Pencil className="ml-auto" />}
+      {player.isDrawing && <Pencil1Icon className="ml-auto" />}
     </div>
   );
 };
