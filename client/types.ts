@@ -5,7 +5,6 @@ export interface TPlayer {
   name: string;
   rank?: number;
   score: number;
-  profilePic: string;
   isDrawing: boolean;
 }
 

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { TPlayer } from "@/types";
-import { Pencil1Icon } from '@radix-ui/react-icons';
+import { Pencil1Icon } from "@radix-ui/react-icons";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const Player = ({ player }: { player: TPlayer }) => {
   return (
@@ -8,13 +9,9 @@ const Player = ({ player }: { player: TPlayer }) => {
       <span className="text-secondary text-xl w-10 text-start">
         #{player.rank}
       </span>
-      <Image
-        height={40}
-        width={40}
-        src={player.profilePic}
-        alt="avatar"
-        className="rounded-full"
-      />
+      <Avatar>
+        <AvatarFallback>{player.name[0]}</AvatarFallback>
+      </Avatar>
       <div className="space-y-2 text-start">
         <div className="text-sm">{player.name}</div>
         <div className="text-xs">{player.score}</div>
