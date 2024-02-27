@@ -1,4 +1,5 @@
 import { Duration } from "moment";
+import { Socket } from "socket.io-client";
 
 export interface TPlayer {
   id: string;
@@ -19,6 +20,7 @@ export interface TStore {
   players: TPlayer[];
   canvasCtx: CanvasRenderingContext2D | null;
   timer: number;
+  socket: Socket;
 
   addMsg: (msg: TMsg) => void;
   addPlayer: (player: TPlayer) => void;

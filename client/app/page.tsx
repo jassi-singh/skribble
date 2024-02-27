@@ -13,10 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { TPlayer } from "@/types";
 import useStore from "@/store";
-
 export default function Home() {
   return (
     <main className="flex h-screen flex-col items-center justify-items-stretch">
@@ -36,6 +35,7 @@ export default function Home() {
 
 const PlayerDetailsDialog = () => {
   const [open, setOpen] = useState(true);
+  const socket = useStore((state) => state.socket);
   const [player, setPlayer] = useState<TPlayer>({
     id: "",
     name: "",
@@ -47,6 +47,7 @@ const PlayerDetailsDialog = () => {
 
   const handleSave = () => {
     setOpen(false);
+    console.log(player);
     addPlayer(player);
   };
 
@@ -57,6 +58,11 @@ const PlayerDetailsDialog = () => {
     }));
   };
 
+  useEffect(() => {
+    socket.on("connect", () => {
+      setPlayer((player) => ({ ...player, id: socket.id ?? "" }));
+    });
+  }, []);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent

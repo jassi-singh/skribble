@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { TPlayer } from "@/types";
 import { Pencil1Icon } from "@radix-ui/react-icons";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 
 const Player = ({ player }: { player: TPlayer }) => {
   return (
