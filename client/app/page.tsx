@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ChangeEvent, useEffect, useState } from "react";
-import { TPlayer } from "@/types";
 import useStore from "@/store";
+import { TPlayer } from '@/types';
 export default function Home() {
   return (
     <main className="flex h-screen flex-col items-center justify-items-stretch">

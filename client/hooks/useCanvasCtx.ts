@@ -1,16 +1,23 @@
-import { RefObject, useEffect } from "react";
+import { RefObject, useEffect, useState } from "react";
 
-const useCanvasDimensions = (
+const useCanvasCtx = (
   canvasRef: RefObject<HTMLCanvasElement>,
   containerRef: RefObject<HTMLDivElement>
-) => {
+): CanvasRenderingContext2D | null => {
+  const [canvasCtx, setCanvasCtx] = useState<CanvasRenderingContext2D | null>(
+    null
+  );
   useEffect(() => {
     if (canvasRef.current && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       canvasRef.current.width = rect.width;
       canvasRef.current.height = rect.height;
+
+      setCanvasCtx(canvasRef.current.getContext("2d"));
     }
   }, []);
+
+  return canvasCtx;
 };
 
-export default useCanvasDimensions;
+export default useCanvasCtx;

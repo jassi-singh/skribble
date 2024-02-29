@@ -1,15 +1,12 @@
-import useCanvasDimensions from "@/hooks/useCanvasDimension";
+import useCanvasCtx from "@/hooks/useCanvasCtx";
 import useStore from "@/store";
 import {
   CircleIcon,
-  ClockIcon,
   EraserIcon,
   Pencil1Icon,
   ReloadIcon,
-  ResetIcon,
 } from "@radix-ui/react-icons";
 import {
-  ChangeEvent,
   Dispatch,
   MouseEvent,
   SetStateAction,
@@ -29,36 +26,66 @@ import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import Timer from "./timer";
+import { randomBytes } from "crypto";
+import { TDrawInfo } from "@/types";
 
 const DrawArea = () => {
-  const canvasCtx = useStore((state) => state.canvasCtx);
-  const setCanvasCtx = useStore((state) => state.setCanvasCtx);
   const [isErasing, setIsErasing] = useState(false);
+  const socket = useStore((state) => state.socket);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasCtx = useCanvasCtx(canvasRef, containerRef);
   let isMoving = false;
-  useCanvasDimensions(canvasRef, containerRef);
 
   const startDrawing = (e: MouseEvent) => {
     if (!canvasRef.current) return;
     isMoving = true;
-    draw(e);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const drawInfo: TDrawInfo = {
+      id: randomBytes(20).toString("hex"),
+      x: (e.clientX - rect.x) / canvasRef.current.width,
+      y: (e.clientY - rect.y) / canvasRef.current.height,
+      lineWidth: canvasCtx!.lineWidth,
+      strokeStyle: canvasCtx!.strokeStyle,
+      eraseMode: isErasing,
+    };
+    socket.emit("start", drawInfo);
+    draw(drawInfo);
   };
 
-  const draw = (e: MouseEvent) => {
-    if (!canvasRef.current || !isMoving || !canvasCtx) return;
+  const onMouseMove = (e: MouseEvent) => {
+    if (isMoving && canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const drawInfo: TDrawInfo = {
+        id: randomBytes(20).toString("hex"),
+        x: (e.clientX - rect.x) / canvasRef.current.width,
+        y: (e.clientY - rect.y) / canvasRef.current.height,
+        lineWidth: canvasCtx!.lineWidth,
+        strokeStyle: canvasCtx!.strokeStyle,
+        eraseMode: isErasing,
+      };
+      socket.emit("drawing", drawInfo);
+      draw(drawInfo);
+    }
+  };
 
-    const rect = canvasRef.current.getBoundingClientRect();
+  const draw = (drawInfo: TDrawInfo) => {
+    if (!canvasRef.current || !isMoving || !canvasCtx) return;
     canvasCtx.lineCap = "round";
-    if (isErasing) {
+    if (drawInfo.eraseMode) {
       canvasCtx.clearRect(
-        e.clientX - rect.x,
-        e.clientY - rect.y,
-        canvasCtx.lineWidth,
-        canvasCtx.lineWidth
+        drawInfo.x * canvasRef.current.width - drawInfo.lineWidth / 2,
+        drawInfo.y * canvasRef.current.width - drawInfo.lineWidth / 2,
+        drawInfo.lineWidth,
+        drawInfo.lineWidth
       );
     } else {
-      canvasCtx.lineTo(e.clientX - rect.x, e.clientY - rect.y);
+      canvasCtx.strokeStyle = drawInfo.strokeStyle;
+      canvasCtx.lineWidth = drawInfo.lineWidth;
+      canvasCtx.lineTo(
+        drawInfo.x * canvasRef.current.width,
+        drawInfo.y * canvasRef.current.height
+      );
       canvasCtx.stroke();
     }
   };
@@ -66,12 +93,28 @@ const DrawArea = () => {
   const stopDrawing = (e: MouseEvent) => {
     canvasCtx?.beginPath();
     isMoving = false;
+    socket.emit("stop");
   };
 
   useEffect(() => {
-    if (!canvasRef.current) return;
-    setCanvasCtx(canvasRef.current.getContext("2d")!);
-  }, []);
+    socket.on("recieve-start", (drawInfo: TDrawInfo) => {
+      isMoving = true;
+      draw(drawInfo);
+    });
+
+    socket.on("recieve-drawing", (drawInfo: TDrawInfo) => {
+      draw(drawInfo);
+    });
+
+    socket.on("recieve-stop", () => {
+      canvasCtx?.beginPath();
+      isMoving = false;
+    });
+
+    return () => {
+      socket.removeAllListeners();
+    };
+  }, [canvasCtx]);
 
   return (
     <section
@@ -81,11 +124,11 @@ const DrawArea = () => {
       <canvas
         onMouseDown={startDrawing}
         onMouseUp={stopDrawing}
-        onMouseMove={draw}
+        onMouseMove={onMouseMove}
         ref={canvasRef}
       ></canvas>
 
-      <Form setIsErasing={setIsErasing} />
+      <Form setIsErasing={setIsErasing} canvasCtx={canvasCtx} />
 
       <Timer />
     </section>
@@ -135,16 +178,18 @@ const solids = [
 
 const Form = ({
   setIsErasing,
+  canvasCtx,
 }: {
   setIsErasing: Dispatch<SetStateAction<boolean>>;
+  canvasCtx: CanvasRenderingContext2D | null;
 }) => {
-  const canvasCtx = useStore((state) => state.canvasCtx);
   const [strokeStyle, setStrokeStyle] = useState<TStrokeStyle>({
     size: 1,
     color: "#ffffff",
     eraser: false,
   });
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const socket = useStore((state) => state.socket);
 
   const changeColor = (color: string) => {
     setStrokeStyle((style) => ({ ...style, color }));
@@ -159,6 +204,11 @@ const Form = ({
 
   const handleModeChange = (type: string) => {
     setStrokeStyle((style) => ({ ...style, eraser: type === "eraser" }));
+  };
+
+  const onReset = () => {
+    socket.emit("reset-canvas");
+    resetCanvas();
   };
 
   const resetCanvas = () => {
@@ -176,6 +226,16 @@ const Form = ({
       setIsErasing(strokeStyle.eraser);
     }
   }, [canvasCtx, strokeStyle]);
+
+  useEffect(() => {
+    socket.on("recieve-reset-canvas", () => {
+      resetCanvas();
+    });
+
+    return () => {
+      socket.removeAllListeners();
+    };
+  }, [canvasCtx]);
 
   return (
     <div className="absolute bottom-4 w-full flex justify-between items-center">
@@ -244,7 +304,7 @@ const Form = ({
         </Popover>
       </div>
 
-      <Button variant={"outline"} onClick={resetCanvas}>
+      <Button variant={"outline"} onClick={onReset}>
         <ReloadIcon />
       </Button>
     </div>

@@ -1,12 +1,10 @@
 import { create } from "zustand";
 import { TMsg, TPlayer, TStore } from "./types";
-import {io} from  'socket.io-client';
+import { io } from "socket.io-client";
 
 const useStore = create<TStore>((set, get) => ({
   msgList: [],
   players: [],
-  canvasCtx: null,
-  setCanvasCtx: (ctx: CanvasRenderingContext2D) => set({ canvasCtx: ctx }),
   timer: 180,
   socket: io("http://localhost:5000"),
 
