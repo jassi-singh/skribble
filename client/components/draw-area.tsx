@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import Timer from "./timer";
 import { randomBytes } from "crypto";
-import { TDrawInfo } from "@/types";
+import { TDrawInfo } from "@skribble/shared";
 
 const DrawArea = () => {
   const [isErasing, setIsErasing] = useState(false);

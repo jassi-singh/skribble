@@ -1,0 +1,14 @@
+{
+  "name": "@skribble/shared",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.20",
+    "socket.io-client": "^4.7.4",
+    "typescript": "^5.3.3"
+  }
+}

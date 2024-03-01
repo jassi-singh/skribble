@@ -1,5 +1,5 @@
 import useStore from "@/store";
-import { TMsg } from "@/types";
+import { TMsg } from "@skribble/shared";
 import { faker } from "@faker-js/faker";
 import { ChatBubbleIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { FormEvent, useEffect, useRef, useState } from "react";

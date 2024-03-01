@@ -1,13 +1,5 @@
+import { TDrawInfo } from '@skribble/shared';
 import { Server } from "socket.io";
-
-interface TDrawInfo {
-  id: string;
-  x: number;
-  y: number;
-  lineWidth: number;
-  strokeStyle: string | CanvasGradient | CanvasPattern;
-  eraseMode: boolean;
-}
 
 const io = new Server(5000, {
   cors: {

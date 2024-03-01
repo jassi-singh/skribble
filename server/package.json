@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "@skribble/server",
   "version": "1.0.0",
   "main": "dist/index.js",
   "license": "MIT",
@@ -9,6 +9,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@skribble/shared": "workspace:^",
     "socket.io": "^4.7.4"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TMsg, TPlayer, TStore } from "./types";
+import { TMsg, TPlayer, TStore } from "@skribble/shared";
 import { io } from "socket.io-client";
 
 const useStore = create<TStore>((set, get) => ({

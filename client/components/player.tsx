@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { TPlayer } from "@/types";
+import { TPlayer } from "@skribble/shared";
 import { Pencil1Icon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
