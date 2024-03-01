@@ -18,6 +18,8 @@ export interface TDrawInfo {
   id: string;
   x: number;
   y: number;
+  height: number;
+  width: number;
   lineWidth: number;
   strokeStyle: string | CanvasGradient | CanvasPattern;
   eraseMode: boolean;

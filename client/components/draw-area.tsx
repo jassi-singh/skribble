@@ -43,11 +43,13 @@ const DrawArea = () => {
     const rect = canvasRef.current.getBoundingClientRect();
     const drawInfo: TDrawInfo = {
       id: randomBytes(20).toString("hex"),
-      x: (e.clientX - rect.x) / canvasRef.current.width,
-      y: (e.clientY - rect.y) / canvasRef.current.height,
+      x: e.clientX - rect.x,
+      y: e.clientY - rect.y,
       lineWidth: canvasCtx!.lineWidth,
       strokeStyle: canvasCtx!.strokeStyle,
       eraseMode: isErasing,
+      width: canvasRef.current.width,
+      height: canvasRef.current.height,
     };
     socket.emit("start", drawInfo);
     draw(drawInfo);
@@ -58,11 +60,13 @@ const DrawArea = () => {
       const rect = canvasRef.current.getBoundingClientRect();
       const drawInfo: TDrawInfo = {
         id: randomBytes(20).toString("hex"),
-        x: (e.clientX - rect.x) / canvasRef.current.width,
-        y: (e.clientY - rect.y) / canvasRef.current.height,
+        x: e.clientX - rect.x,
+        y: e.clientY - rect.y,
         lineWidth: canvasCtx!.lineWidth,
         strokeStyle: canvasCtx!.strokeStyle,
         eraseMode: isErasing,
+        width: canvasRef.current.width,
+        height: canvasRef.current.height,
       };
       socket.emit("drawing", drawInfo);
       draw(drawInfo);
@@ -73,21 +77,20 @@ const DrawArea = () => {
     if (!canvasRef.current || !isMoving || !canvasCtx) return;
     canvasCtx.lineCap = "round";
     if (drawInfo.eraseMode) {
-      canvasCtx.clearRect(
-        drawInfo.x * canvasRef.current.width - drawInfo.lineWidth / 2,
-        drawInfo.y * canvasRef.current.width - drawInfo.lineWidth / 2,
-        drawInfo.lineWidth,
-        drawInfo.lineWidth
-      );
+      canvasCtx.globalCompositeOperation = "destination-out";
     } else {
-      canvasCtx.strokeStyle = drawInfo.strokeStyle;
-      canvasCtx.lineWidth = drawInfo.lineWidth;
-      canvasCtx.lineTo(
-        drawInfo.x * canvasRef.current.width,
-        drawInfo.y * canvasRef.current.height
-      );
-      canvasCtx.stroke();
+      canvasCtx.globalCompositeOperation = "source-over";
     }
+
+    const [scaleX, scaleY] = [
+      canvasRef.current.width / drawInfo.width,
+      canvasRef.current.height / drawInfo.height,
+    ];
+
+    canvasCtx.strokeStyle = drawInfo.strokeStyle;
+    canvasCtx.lineWidth = drawInfo.lineWidth * scaleX * scaleY;
+    canvasCtx.lineTo(drawInfo.x * scaleX, drawInfo.y * scaleY);
+    canvasCtx.stroke();
   };
 
   const stopDrawing = (e: MouseEvent) => {
