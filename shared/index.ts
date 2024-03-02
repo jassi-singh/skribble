@@ -23,6 +23,7 @@ export interface TDrawInfo {
   lineWidth: number;
   strokeStyle: string | CanvasGradient | CanvasPattern;
   eraseMode: boolean;
+  type: "start" | "drawing";
 }
 
 export interface TStore {
@@ -40,7 +41,7 @@ export interface TRoomInfo {
   currentWord?: string;
   currentPlayerId?: string;
   players: TPlayer[];
-  currentDrawingInfo: TDrawInfo[];
+  currentDrawingInfo: Array<TDrawInfo | "stop">;
 }
 
 export enum SocketEvents {
@@ -49,6 +50,7 @@ export enum SocketEvents {
   drawing = "drawing",
   stopDraw = "stop-draw",
   updatePlayers = "update-players",
+  syncCanvas = "sync-canvas",
   userJoin = "user-join",
   createRoom = "create-room",
 }

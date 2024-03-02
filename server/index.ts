@@ -23,6 +23,10 @@ io.on("connection", (socket) => {
         ...room,
         players: room.players.filter((p) => p.id != socket.id),
       });
+
+      if (rooms.get(roomId)?.players.length == 0) {
+        rooms.delete(roomId);
+      }
       socket.broadcast
         .to(roomId)
         .emit(SocketEvents.updatePlayers, rooms.get(roomId)?.players);
@@ -31,31 +35,51 @@ io.on("connection", (socket) => {
 
   // CANVAS
   socket.on(SocketEvents.startDraw, (drawInfo: TDrawInfo, roomId: string) => {
+    rooms.set(roomId, {
+      ...rooms.get(roomId)!,
+      currentDrawingInfo: [...rooms.get(roomId)!.currentDrawingInfo, drawInfo],
+    });
     socket.broadcast.to(roomId).emit(SocketEvents.startDraw, drawInfo);
   });
 
   socket.on(SocketEvents.drawing, (drawInfo: TDrawInfo, roomId: string) => {
+    rooms.set(roomId, {
+      ...rooms.get(roomId)!,
+      currentDrawingInfo: [...rooms.get(roomId)!.currentDrawingInfo, drawInfo],
+    });
     socket.broadcast.to(roomId).emit(SocketEvents.drawing, drawInfo);
   });
 
   socket.on(SocketEvents.stopDraw, (roomId: string) => {
+    rooms.set(roomId, {
+      ...rooms.get(roomId)!,
+      currentDrawingInfo: [...rooms.get(roomId)!.currentDrawingInfo, "stop"],
+    });
     socket.broadcast.to(roomId).emit(SocketEvents.stopDraw);
   });
 
   socket.on(SocketEvents.resetCanvas, (roomId: string) => {
+    rooms.set(roomId, {
+      ...rooms.get(roomId)!,
+      currentDrawingInfo: [],
+    });
     socket.broadcast.to(roomId).emit(SocketEvents.resetCanvas);
   });
 
   socket.on(SocketEvents.userJoin, (player: TPlayer, roomId: string) => {
     socket.join(roomId);
     userToRoom.set(socket.id, roomId);
-    const selectedRoom = rooms.get(roomId);
     rooms.set(roomId, {
-      players: [...(selectedRoom?.players ?? []), player],
+      players: [...(rooms.get(roomId)?.players ?? []), player],
       currentDrawingInfo: rooms.get(roomId)?.currentDrawingInfo ?? [],
     });
 
     io.to(roomId).emit(SocketEvents.updatePlayers, rooms.get(roomId)?.players);
+
+    socket.emit(
+      SocketEvents.syncCanvas,
+      rooms.get(roomId)?.currentDrawingInfo ?? []
+    );
   });
 
   socket.on(

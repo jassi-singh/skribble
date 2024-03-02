@@ -51,6 +51,7 @@ const DrawArea = () => {
       eraseMode: isErasing,
       width: canvasRef.current.width,
       height: canvasRef.current.height,
+      type: "start",
     };
     socket.emit(SocketEvents.startDraw, drawInfo, roomId);
     draw(drawInfo);
@@ -67,6 +68,7 @@ const DrawArea = () => {
         eraseMode: isErasing,
         width: canvasRef.current.width,
         height: canvasRef.current.height,
+        type: "drawing",
       };
       socket.emit(SocketEvents.drawing, drawInfo, roomId);
       draw(drawInfo);
@@ -114,14 +116,30 @@ const DrawArea = () => {
       isMoving = false;
     };
 
+    const sync = (commands: Array<TDrawInfo | "stop">) => {
+      commands.forEach((cmd) => {
+        if (cmd == "stop") {
+          stop();
+        } else {
+          if (cmd.type == "start") {
+            start(cmd);
+          } else {
+            drawing(cmd);
+          }
+        }
+      });
+    };
+
     socket.on(SocketEvents.startDraw, start);
     socket.on(SocketEvents.drawing, drawing);
     socket.on(SocketEvents.stopDraw, stop);
+    socket.on(SocketEvents.syncCanvas, sync);
 
     return () => {
       socket.removeListener(SocketEvents.startDraw, start);
       socket.removeListener(SocketEvents.drawing, drawing);
       socket.removeListener(SocketEvents.stopDraw, stop);
+      socket.removeListener(SocketEvents.syncCanvas, sync);
     };
   }, [canvasCtx]);
 
