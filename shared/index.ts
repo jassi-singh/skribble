@@ -6,6 +6,7 @@ export interface TPlayer {
   rank?: number;
   score: number;
   isDrawing: boolean;
+  isAdmin: boolean;
 }
 
 export interface TMsg {
@@ -15,7 +16,6 @@ export interface TMsg {
 }
 
 export interface TDrawInfo {
-  id: string;
   x: number;
   y: number;
   height: number;
@@ -31,7 +31,24 @@ export interface TStore {
   timer: number;
   socket: Socket;
   addMsg: (msg: TMsg) => void;
-  addPlayer: (player: TPlayer) => void;
+  addPlayers: (players: TPlayer[]) => void;
   updatePlayer: (player: TPlayer) => void;
   startTimer: () => void;
+}
+
+export interface TRoomInfo {
+  currentWord?: string;
+  currentPlayerId?: string;
+  players: TPlayer[];
+  currentDrawingInfo: TDrawInfo[];
+}
+
+export enum SocketEvents {
+  resetCanvas = "reset-canvas",
+  startDraw = "start-draw",
+  drawing = "drawing",
+  stopDraw = "stop-draw",
+  updatePlayers = "update-players",
+  userJoin = "user-join",
+  createRoom = "create-room",
 }

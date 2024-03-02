@@ -9,8 +9,7 @@ const useStore = create<TStore>((set, get) => ({
   socket: io("http://localhost:5000"),
 
   addMsg: (msg: TMsg) => set((state) => ({ msgList: [...state.msgList, msg] })),
-  addPlayer: (player: TPlayer) =>
-    set((state) => ({ players: [...state.players, player] })),
+  addPlayers: (players: TPlayer[]) => set({ players: [...players] }),
   updatePlayer: (player: TPlayer) =>
     set((state) => ({
       players: state.players.map((p) => (p.id === player.id ? player : p)),

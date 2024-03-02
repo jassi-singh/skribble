@@ -3,20 +3,25 @@
 import PlayersList from "@/components/player-list";
 import DrawArea from "@/components/draw-area";
 import MsgList from "@/components/msg-list";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, Suspense, useEffect, useState } from "react";
 import useStore from "@/store";
-import { TPlayer } from "@skribble/shared";
+import { SocketEvents, TPlayer } from "@skribble/shared";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 export default function Home() {
+  const socket = useStore((state) => state.socket);
+  const addPlayers = useStore((state) => state.addPlayers);
+
+  useEffect(() => {
+    socket.on(SocketEvents.updatePlayers, addPlayers);
+    return () => {
+      socket.removeListener(SocketEvents.updatePlayers, addPlayers);
+    };
+  }, []);
   return (
     <main className="flex h-screen flex-col items-center justify-items-stretch">
       <nav className="py-4 w-full">
@@ -27,13 +32,18 @@ export default function Home() {
         <PlayersList />
         <DrawArea />
         <MsgList />
-        <PlayerDetailsDialog />
+        <Suspense fallback={<p>Loading..</p>}>
+          <StartupDialog />
+        </Suspense>
       </div>
     </main>
   );
 }
 
-const PlayerDetailsDialog = () => {
+const StartupDialog = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(true);
   const socket = useStore((state) => state.socket);
   const [player, setPlayer] = useState<TPlayer>({
@@ -41,14 +51,25 @@ const PlayerDetailsDialog = () => {
     name: "",
     score: 0,
     isDrawing: false,
+    isAdmin: false,
   });
 
-  const addPlayer = useStore((state) => state.addPlayer);
-
-  const handleSave = () => {
+  const handleStart = () => {
     setOpen(false);
-    console.log(player);
-    addPlayer(player);
+    socket.emit(SocketEvents.userJoin, player, searchParams.get("roomId"));
+  };
+
+  const handleCreateRoom = () => {
+    setOpen(false);
+    const cb = (roomId: string) => {
+      const current = new URLSearchParams();
+      current.set("roomId", roomId);
+      const search = current.toString();
+      const query = search ? `?${search}` : "";
+
+      router.push(`${pathname}${query}`);
+    };
+    socket.emit(SocketEvents.createRoom, player, cb);
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -59,9 +80,14 @@ const PlayerDetailsDialog = () => {
   };
 
   useEffect(() => {
-    socket.on("connect", () => {
+    const updateId = () => {
       setPlayer((player) => ({ ...player, id: socket.id ?? "" }));
-    });
+    };
+    socket.on("connect", updateId);
+
+    return () => {
+      socket.removeListener("connect", updateId);
+    };
   }, []);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -69,9 +95,6 @@ const PlayerDetailsDialog = () => {
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Enter Player Name</DialogTitle>
-        </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
@@ -87,8 +110,16 @@ const PlayerDetailsDialog = () => {
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSave}>
-            Save
+          <Button
+            variant={"secondary"}
+            className="w-32"
+            type="submit"
+            onClick={handleCreateRoom}
+          >
+            Create Room
+          </Button>
+          <Button className="w-32" type="submit" onClick={handleStart}>
+            Enter
           </Button>
         </DialogFooter>
       </DialogContent>

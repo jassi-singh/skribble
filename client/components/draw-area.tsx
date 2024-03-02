@@ -26,10 +26,12 @@ import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import Timer from "./timer";
-import { randomBytes } from "crypto";
-import { TDrawInfo } from "@skribble/shared";
+import { SocketEvents, TDrawInfo } from "@skribble/shared";
+import { useSearchParams } from "next/navigation";
 
 const DrawArea = () => {
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId");
   const [isErasing, setIsErasing] = useState(false);
   const socket = useStore((state) => state.socket);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,7 +44,6 @@ const DrawArea = () => {
     isMoving = true;
     const rect = canvasRef.current.getBoundingClientRect();
     const drawInfo: TDrawInfo = {
-      id: randomBytes(20).toString("hex"),
       x: e.clientX - rect.x,
       y: e.clientY - rect.y,
       lineWidth: canvasCtx!.lineWidth,
@@ -51,7 +52,7 @@ const DrawArea = () => {
       width: canvasRef.current.width,
       height: canvasRef.current.height,
     };
-    socket.emit("start", drawInfo);
+    socket.emit(SocketEvents.startDraw, drawInfo, roomId);
     draw(drawInfo);
   };
 
@@ -59,7 +60,6 @@ const DrawArea = () => {
     if (isMoving && canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const drawInfo: TDrawInfo = {
-        id: randomBytes(20).toString("hex"),
         x: e.clientX - rect.x,
         y: e.clientY - rect.y,
         lineWidth: canvasCtx!.lineWidth,
@@ -68,7 +68,7 @@ const DrawArea = () => {
         width: canvasRef.current.width,
         height: canvasRef.current.height,
       };
-      socket.emit("drawing", drawInfo);
+      socket.emit(SocketEvents.drawing, drawInfo, roomId);
       draw(drawInfo);
     }
   };
@@ -96,26 +96,32 @@ const DrawArea = () => {
   const stopDrawing = (e: MouseEvent) => {
     canvasCtx?.beginPath();
     isMoving = false;
-    socket.emit("stop");
+    socket.emit(SocketEvents.stopDraw, roomId);
   };
 
   useEffect(() => {
-    socket.on("recieve-start", (drawInfo: TDrawInfo) => {
+    const start = (drawInfo: TDrawInfo) => {
       isMoving = true;
       draw(drawInfo);
-    });
+    };
 
-    socket.on("recieve-drawing", (drawInfo: TDrawInfo) => {
+    const drawing = (drawInfo: TDrawInfo) => {
       draw(drawInfo);
-    });
+    };
 
-    socket.on("recieve-stop", () => {
+    const stop = () => {
       canvasCtx?.beginPath();
       isMoving = false;
-    });
+    };
+
+    socket.on(SocketEvents.startDraw, start);
+    socket.on(SocketEvents.drawing, drawing);
+    socket.on(SocketEvents.stopDraw, stop);
 
     return () => {
-      socket.removeAllListeners();
+      socket.removeListener(SocketEvents.startDraw, start);
+      socket.removeListener(SocketEvents.drawing, drawing);
+      socket.removeListener(SocketEvents.stopDraw, stop);
     };
   }, [canvasCtx]);
 
@@ -131,7 +137,7 @@ const DrawArea = () => {
         ref={canvasRef}
       ></canvas>
 
-      <Form setIsErasing={setIsErasing} canvasCtx={canvasCtx} />
+      <Form setIsErasing={setIsErasing} canvasCtx={canvasCtx} roomId={roomId} />
 
       <Timer />
     </section>
@@ -182,9 +188,11 @@ const solids = [
 const Form = ({
   setIsErasing,
   canvasCtx,
+  roomId,
 }: {
   setIsErasing: Dispatch<SetStateAction<boolean>>;
   canvasCtx: CanvasRenderingContext2D | null;
+  roomId: string | null;
 }) => {
   const [strokeStyle, setStrokeStyle] = useState<TStrokeStyle>({
     size: 1,
@@ -210,7 +218,7 @@ const Form = ({
   };
 
   const onReset = () => {
-    socket.emit("reset-canvas");
+    socket.emit(SocketEvents.resetCanvas, roomId);
     resetCanvas();
   };
 
@@ -231,12 +239,10 @@ const Form = ({
   }, [canvasCtx, strokeStyle]);
 
   useEffect(() => {
-    socket.on("recieve-reset-canvas", () => {
-      resetCanvas();
-    });
+    socket.on(SocketEvents.resetCanvas, resetCanvas);
 
     return () => {
-      socket.removeAllListeners();
+      socket.removeListener(SocketEvents.resetCanvas, resetCanvas);
     };
   }, [canvasCtx]);
 
