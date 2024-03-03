@@ -53,6 +53,9 @@ const Form = () => {
   const addMsg = useStore((state) => state.addMsg);
   const socket = useStore((state) => state.socket);
   const user = useStore((state) => state.user);
+  const isDrawing = useStore(
+    (state) => state.currentPlayerId == state.user?.id
+  );
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setMsg(e.target.value);
@@ -90,7 +93,7 @@ const Form = () => {
         autoComplete="off"
         onChange={handleChange}
       />
-      <Button onClick={handleSendMessage}>
+      <Button disabled={isDrawing} onClick={handleSendMessage}>
         <PaperPlaneTilt size={20} />
       </Button>
     </form>

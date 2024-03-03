@@ -25,7 +25,6 @@ import {
 import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
-import Timer from "./timer";
 import { SocketEvents, TDrawInfo } from "@skribble/shared";
 import { useSearchParams } from "next/navigation";
 
@@ -34,13 +33,17 @@ const DrawArea = () => {
   const roomId = searchParams.get("roomId");
   const [isErasing, setIsErasing] = useState(false);
   const socket = useStore((state) => state.socket);
+  const isDrawing = useStore(
+    (state) => state.user?.id == state.currentPlayerId
+  );
+  const infoText = useStore((state) => state.infoText);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasCtx = useCanvasCtx(canvasRef, containerRef);
   let isMoving = false;
 
   const startDrawing = (e: MouseEvent) => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !isDrawing) return;
     isMoving = true;
     const rect = canvasRef.current.getBoundingClientRect();
     const drawInfo: TDrawInfo = {
@@ -58,6 +61,7 @@ const DrawArea = () => {
   };
 
   const onMouseMove = (e: MouseEvent) => {
+    if (!isDrawing) return;
     if (isMoving && canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const drawInfo: TDrawInfo = {
@@ -96,6 +100,7 @@ const DrawArea = () => {
   };
 
   const stopDrawing = (e: MouseEvent) => {
+    if (!isDrawing) return;
     canvasCtx?.beginPath();
     isMoving = false;
     socket.emit(SocketEvents.stopDraw, roomId);
@@ -146,7 +151,7 @@ const DrawArea = () => {
   return (
     <section
       ref={containerRef}
-      className="col-span-2 rounded-md text-center relative"
+      className="col-span-2 rounded-md text-center relative border"
     >
       <canvas
         onMouseDown={startDrawing}
@@ -157,7 +162,11 @@ const DrawArea = () => {
 
       <Form setIsErasing={setIsErasing} canvasCtx={canvasCtx} roomId={roomId} />
 
-      <Timer />
+      {infoText && (
+        <div className="absolute bottom-0 p-4 w-full h-full flex items-center justify-center bg-white/10 rounded-md border">
+          {infoText}
+        </div>
+      )}
     </section>
   );
 };
@@ -212,6 +221,9 @@ const Form = ({
   canvasCtx: CanvasRenderingContext2D | null;
   roomId: string | null;
 }) => {
+  const isDrawing = useStore(
+    (state) => state.user?.id == state.currentPlayerId
+  );
   const [strokeStyle, setStrokeStyle] = useState<TStrokeStyle>({
     size: 1,
     color: "#ffffff",
@@ -264,78 +276,79 @@ const Form = ({
     };
   }, [canvasCtx]);
 
-  return (
-    <div className="absolute bottom-0 w-full flex justify-between items-center">
-      <div className="rounded-md p-4 flex gap-4 dark:bg-zinc-950 bg-white">
-        <div className="flex gap-2 items-center">
-          <Circle />
-          <Input
-            max={100}
-            min={1}
-            type="number"
-            name="size"
-            className="w-20"
-            value={strokeStyle.size}
-            onChange={handleChange}
-          />
+  if (isDrawing)
+    return (
+      <div className="absolute bottom-0 p-4 w-full flex justify-between items-center">
+        <div className="rounded-md flex gap-4 dark:bg-zinc-950 bg-white">
+          <div className="flex gap-2 items-center">
+            <Circle />
+            <Input
+              max={100}
+              min={1}
+              type="number"
+              name="size"
+              className="w-20"
+              value={strokeStyle.size}
+              onChange={handleChange}
+            />
+          </div>
+
+          <Select defaultValue={"pencil"} onValueChange={handleModeChange}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="pencil">
+                  <Pencil />
+                </SelectItem>
+                <SelectItem value="eraser">
+                  <Eraser />
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger>
+              <Button variant="outline">
+                <span
+                  style={{ background: strokeStyle.color }}
+                  className="h-full w-5 rounded-sm mr-4"
+                ></span>
+                {strokeStyle.color}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="space-y-4">
+              <div className="text-lg font-semi">Select Color</div>
+
+              <div className="flex flex-wrap gap-4 max-h-40 overflow-auto">
+                {solids.map((color) => (
+                  <span
+                    key={color}
+                    className="h-5 w-5 rounded-sm"
+                    style={{ background: color }}
+                    onClick={() => {
+                      changeColor(color);
+                      setPopoverOpen(false);
+                    }}
+                  ></span>
+                ))}
+              </div>
+
+              <Input
+                value={strokeStyle.color}
+                onChange={(e) => changeColor(e.target.value)}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
-        <Select defaultValue={"pencil"} onValueChange={handleModeChange}>
-          <SelectTrigger className="w-20">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="pencil">
-                <Pencil />
-              </SelectItem>
-              <SelectItem value="eraser">
-                <Eraser />
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger>
-            <Button variant="outline">
-              <span
-                style={{ background: strokeStyle.color }}
-                className="h-full w-5 rounded-sm mr-4"
-              ></span>
-              {strokeStyle.color}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="space-y-4">
-            <div className="text-lg font-semi">Select Color</div>
-
-            <div className="flex flex-wrap gap-4 max-h-40 overflow-auto">
-              {solids.map((color) => (
-                <span
-                  key={color}
-                  className="h-5 w-5 rounded-sm"
-                  style={{ background: color }}
-                  onClick={() => {
-                    changeColor(color);
-                    setPopoverOpen(false);
-                  }}
-                ></span>
-              ))}
-            </div>
-
-            <Input
-              value={strokeStyle.color}
-              onChange={(e) => changeColor(e.target.value)}
-            />
-          </PopoverContent>
-        </Popover>
+        <Button variant={"outline"} onClick={onReset}>
+          <ArrowCounterClockwise />
+        </Button>
       </div>
-
-      <Button variant={"outline"} onClick={onReset}>
-        <ArrowCounterClockwise />
-      </Button>
-    </div>
-  );
+    );
 };
 
 export default DrawArea;

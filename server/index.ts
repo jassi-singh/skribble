@@ -76,6 +76,7 @@ io.on("connection", (socket) => {
     socket.join(roomId);
     userToRoom.set(socket.id, roomId);
     rooms.set(roomId, {
+      round: rooms.get(roomId)?.round ?? 1,
       players: [...(rooms.get(roomId)?.players ?? []), player],
       currentDrawingInfo: rooms.get(roomId)?.currentDrawingInfo ?? [],
     });
@@ -98,6 +99,7 @@ io.on("connection", (socket) => {
       rooms.set(roomId, {
         players: [player],
         currentDrawingInfo: [],
+        round: 1,
       });
       io.to(roomId).emit(
         SocketEvents.updatePlayers,
@@ -111,4 +113,35 @@ io.on("connection", (socket) => {
     msg.id = uuidv4();
     io.to(roomId).emit(SocketEvents.message, msg);
   });
+
+  socket.on(
+    SocketEvents.showWords,
+    (
+      roomId: string,
+      cb: (words: string[], currentPlayerId: string) => void
+    ) => {
+      const words = ["fire", "water", "snake"];
+      cb(words, socket.id);
+      const player = rooms
+        .get(roomId)
+        ?.players.find((player) => player.id == socket.id);
+      socket
+        .to(roomId)
+        .emit(SocketEvents.setInfoText, `${player?.name} is selecting a word`);
+    }
+  );
+
+  socket.on(
+    SocketEvents.selectWord,
+    (word: string, roomId: string, playerId: string) => {
+      rooms.set(roomId, {
+        ...rooms.get(roomId)!,
+        currentWord: word,
+        currentPlayerId: playerId,
+      });
+
+      socket.to(roomId).emit(SocketEvents.selectWord, word.length, playerId);
+      socket.to(roomId).emit(SocketEvents.setInfoText, null);
+    }
+  );
 });

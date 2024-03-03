@@ -4,12 +4,18 @@ import { io } from "socket.io-client";
 
 const useStore = create<TStore>((set, get) => ({
   user: null,
+  currentPlayerId: null,
+  currentWord: null,
+  round: 1,
   msgList: [],
   players: [],
   timer: 180,
   socket: io("http://localhost:5000"),
+  infoText: null,
+  setInfoText: (infoText: string | null) => set({ infoText }),
+  setRound: (round: number) => set({ round }),
   setUser: (user: TPlayer) => set({ user }),
-
+  setCurrentPlayerId: (currentPlayerId: string) => set({ currentPlayerId }),
   addMsg: (msg: TMsg) => set((state) => ({ msgList: [...state.msgList, msg] })),
   addPlayers: (players: TPlayer[]) => set({ players: [...players] }),
   updatePlayer: (player: TPlayer) =>
@@ -34,6 +40,7 @@ const useStore = create<TStore>((set, get) => ({
       set((state) => ({ timer: state.timer - 1 }));
     }, 1000);
   },
+  setCurrentWord: (word: string) => set({ currentWord: word }),
 }));
 
 export default useStore;

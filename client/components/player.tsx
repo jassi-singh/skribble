@@ -1,8 +1,10 @@
 import { TPlayer } from "@skribble/shared";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Crown, Pencil } from "@phosphor-icons/react";
+import useStore from "@/store";
 
 const Player = ({ player }: { player: TPlayer }) => {
+  const isDrawing = useStore((state) => player.id == state.currentPlayerId);
   return (
     <div className="flex items-center gap-4">
       <span className="text-primary/80 text-xl w-10 text-start">
@@ -21,7 +23,7 @@ const Player = ({ player }: { player: TPlayer }) => {
         <div className="text-xs">{player.score}</div>
       </div>
 
-      {player.isDrawing && <Pencil className="ml-auto" />}
+      {isDrawing && <Pencil className="ml-auto" />}
     </div>
   );
 };

@@ -7,35 +7,60 @@ import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ChangeEvent, Suspense, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  Suspense,
+  useEffect,
+  useState,
+} from "react";
 import useStore from "@/store";
 import { SocketEvents, TPlayer } from "@skribble/shared";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import GameInfo from "@/components/game-info";
 
 export default function Home() {
+  const [open, setOpen] = useState(false);
+  const [words, setWords] = useState<string[]>([]);
   const socket = useStore((state) => state.socket);
+  const startTimer = useStore((state) => state.startTimer);
+  const setCurrentPlayerId = useStore((state) => state.setCurrentPlayerId);
+  const setCurrentWord = useStore((state) => state.setCurrentWord);
+  const setInfoText = useStore((state) => state.setInfoText);
   const addPlayers = useStore((state) => state.addPlayers);
 
   useEffect(() => {
+    const onSelectWord = (wordLength: number, playerId: string) => {
+      setCurrentPlayerId(playerId);
+      setCurrentWord("_".repeat(wordLength));
+      startTimer();
+    };
     socket.on(SocketEvents.updatePlayers, addPlayers);
+    socket.on(SocketEvents.selectWord, onSelectWord);
+    socket.on(SocketEvents.setInfoText, setInfoText);
     return () => {
       socket.removeListener(SocketEvents.updatePlayers, addPlayers);
+      socket.removeListener(SocketEvents.selectWord, onSelectWord);
+      socket.removeListener(SocketEvents.setInfoText, setInfoText);
     };
   }, []);
   return (
-    <main className="flex h-screen flex-col items-center justify-items-stretch">
-      <nav className="py-4 w-full">
-        <h1 className="text-3xl font-bold text-center">Skribble</h1>
+    <main className="flex h-screen flex-col p-4 gap-4">
+      <nav className="w-full">
+        <h1 className="text-3xl font-bold">Skribble</h1>
       </nav>
-
-      <div className="relative flex-grow w-full p-4 grid grid-cols-4 gap-4 overflow-auto">
+      <GameInfo setOpen={setOpen} setWords={setWords} />
+      <div className="relative flex-grow w-full grid grid-cols-4 gap-4 overflow-auto">
         <PlayersList />
         <DrawArea />
         <MsgList />
         <Suspense fallback={<p>Loading..</p>}>
           <StartupDialog />
         </Suspense>
+        <SelectWordDialog open={open} setOpen={setOpen} words={words} />
       </div>
     </main>
   );
@@ -52,7 +77,6 @@ const StartupDialog = () => {
     id: "",
     name: "",
     score: 0,
-    isDrawing: false,
     isAdmin: false,
   });
 
@@ -72,7 +96,8 @@ const StartupDialog = () => {
 
       router.push(`${pathname}${query}`);
     };
-    setUser(player)
+    player.isAdmin = true;
+    setUser(player);
     socket.emit(SocketEvents.createRoom, player, cb);
   };
 
@@ -126,6 +151,46 @@ const StartupDialog = () => {
             Enter
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const SelectWordDialog = ({
+  open,
+  setOpen,
+  words,
+}: {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  words: string[];
+}) => {
+  const socket = useStore((store) => store.socket);
+  const currentPlayerId = useStore((store) => store.currentPlayerId);
+  const setCurrentWord = useStore((store) => store.setCurrentWord);
+  const startTimer = useStore((store) => store.startTimer);
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId");
+
+  const handleSelectWord = (word: string) => () => {
+    setOpen(false);
+    setCurrentWord(word);
+    startTimer();
+    socket.emit(SocketEvents.selectWord, word, roomId, currentPlayerId);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogTitle>Select a word</DialogTitle>
+        {words.map((word) => (
+          <Button onClick={handleSelectWord(word)} variant="outline">
+            {word}
+          </Button>
+        ))}
       </DialogContent>
     </Dialog>
   );

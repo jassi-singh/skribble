@@ -11,7 +11,7 @@ const useCanvasCtx = (
     if (canvasRef.current && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       canvasRef.current.width = rect.width;
-      canvasRef.current.height = rect.height;
+      canvasRef.current.height = rect.height - 2;
 
       setCanvasCtx(canvasRef.current.getContext("2d"));
     }

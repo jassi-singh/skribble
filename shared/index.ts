@@ -5,7 +5,6 @@ export interface TPlayer {
   name: string;
   rank?: number;
   score: number;
-  isDrawing: boolean;
   isAdmin: boolean;
 }
 
@@ -28,15 +27,23 @@ export interface TDrawInfo {
 
 export interface TStore {
   user: TPlayer | null;
+  round: number;
+  currentPlayerId: string | null;
+  currentWord: string | null;
   msgList: TMsg[];
   players: TPlayer[];
   timer: number;
   socket: Socket;
+  infoText: string | null;
+  setInfoText: (text: string | null) => void;
   addMsg: (msg: TMsg) => void;
   addPlayers: (players: TPlayer[]) => void;
   updatePlayer: (player: TPlayer) => void;
   startTimer: () => void;
   setUser: (user: TPlayer) => void;
+  setCurrentPlayerId: (currentPlayerId: string) => void;
+  setRound: (round: number) => void;
+  setCurrentWord: (word: string) => void;
 }
 
 export interface TRoomInfo {
@@ -44,6 +51,7 @@ export interface TRoomInfo {
   currentPlayerId?: string;
   players: TPlayer[];
   currentDrawingInfo: Array<TDrawInfo | "stop">;
+  round: number;
 }
 
 export enum SocketEvents {
@@ -56,4 +64,7 @@ export enum SocketEvents {
   userJoin = "user-join",
   createRoom = "create-room",
   message = "message",
+  showWords = "show-words",
+  selectWord = "select-word",
+  setInfoText = "set-info-text",
 }
