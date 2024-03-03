@@ -1,4 +1,10 @@
-import { SocketEvents, TDrawInfo, TPlayer, TRoomInfo } from "@skribble/shared";
+import {
+  SocketEvents,
+  TDrawInfo,
+  TMsg,
+  TPlayer,
+  TRoomInfo,
+} from "@skribble/shared";
 import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
 
@@ -100,8 +106,9 @@ io.on("connection", (socket) => {
       cb(roomId);
     }
   );
-});
 
-io.on("disconnection", (socket) => {
-  console.log("user disconnected", socket.id);
+  socket.on(SocketEvents.message, (msg: TMsg, roomId: string) => {
+    msg.id = uuidv4();
+    io.to(roomId).emit(SocketEvents.message, msg);
+  });
 });

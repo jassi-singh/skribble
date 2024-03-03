@@ -1,10 +1,10 @@
 import useStore from "@/store";
-import { TMsg } from "@skribble/shared";
-import { faker } from "@faker-js/faker";
-import { ChatBubbleIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
+import { SocketEvents, TMsg } from "@skribble/shared";
+import { Chat, PaperPlaneTilt } from "@phosphor-icons/react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { useSearchParams } from "next/navigation";
 
 const MsgList = () => {
   const msgList = useStore((state) => state.msgList);
@@ -20,7 +20,7 @@ const MsgList = () => {
   return (
     <section className="rounded-md border text-center px-4 space-y-4 overflow-auto flex flex-col">
       <div className="sticky top-0 flex gap-2 items-center bg-white/50 dark:bg-zinc-950/50 backdrop-blur py-4">
-        Chat <ChatBubbleIcon />
+        Chat <Chat />
       </div>
 
       <div className="flex flex-col flex-1 justify-end">
@@ -47,8 +47,12 @@ const Message = ({ msg }: { msg: TMsg }) => {
 };
 
 const Form = () => {
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId");
   const [msg, setMsg] = useState("");
   const addMsg = useStore((state) => state.addMsg);
+  const socket = useStore((state) => state.socket);
+  const user = useStore((state) => state.user);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setMsg(e.target.value);
@@ -56,19 +60,27 @@ const Form = () => {
 
   const handleSendMessage = (e: FormEvent) => {
     e.preventDefault();
-    if (msg.trim() === "") return;
+    if (msg.trim() === "" || !user) return;
     const newMsg: TMsg = {
-      id: faker.string.uuid(),
+      id: null,
       sender: {
-        id: faker.string.uuid(),
-        name: faker.person.firstName(),
+        id: user.id,
+        name: user.name,
       },
       message: msg,
     };
 
-    addMsg(newMsg);
+    socket.send(newMsg, roomId);
     setMsg("");
   };
+
+  useEffect(() => {
+    socket.on(SocketEvents.message, addMsg);
+
+    return () => {
+      socket.removeListener(SocketEvents.message, addMsg);
+    };
+  }, []);
   return (
     <form className="flex gap-4 sticky bottom-0 bg-white dark:bg-zinc-950 py-4">
       <Input
@@ -79,7 +91,7 @@ const Form = () => {
         onChange={handleChange}
       />
       <Button onClick={handleSendMessage}>
-        <PaperPlaneIcon />
+        <PaperPlaneTilt size={20} />
       </Button>
     </form>
   );

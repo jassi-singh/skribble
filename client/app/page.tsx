@@ -12,6 +12,7 @@ import useStore from "@/store";
 import { SocketEvents, TPlayer } from "@skribble/shared";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+
 export default function Home() {
   const socket = useStore((state) => state.socket);
   const addPlayers = useStore((state) => state.addPlayers);
@@ -46,6 +47,7 @@ const StartupDialog = () => {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(true);
   const socket = useStore((state) => state.socket);
+  const setUser = useStore((state) => state.setUser);
   const [player, setPlayer] = useState<TPlayer>({
     id: "",
     name: "",
@@ -56,6 +58,7 @@ const StartupDialog = () => {
 
   const handleStart = () => {
     setOpen(false);
+    setUser(player);
     socket.emit(SocketEvents.userJoin, player, searchParams.get("roomId"));
   };
 
@@ -69,6 +72,7 @@ const StartupDialog = () => {
 
       router.push(`${pathname}${query}`);
     };
+    setUser(player)
     socket.emit(SocketEvents.createRoom, player, cb);
   };
 

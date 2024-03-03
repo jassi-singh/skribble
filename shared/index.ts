@@ -10,7 +10,7 @@ export interface TPlayer {
 }
 
 export interface TMsg {
-  id: string;
+  id: string | null;
   sender: Pick<TPlayer, "id" | "name">;
   message: string;
 }
@@ -27,6 +27,7 @@ export interface TDrawInfo {
 }
 
 export interface TStore {
+  user: TPlayer | null;
   msgList: TMsg[];
   players: TPlayer[];
   timer: number;
@@ -35,6 +36,7 @@ export interface TStore {
   addPlayers: (players: TPlayer[]) => void;
   updatePlayer: (player: TPlayer) => void;
   startTimer: () => void;
+  setUser: (user: TPlayer) => void;
 }
 
 export interface TRoomInfo {
@@ -53,4 +55,5 @@ export enum SocketEvents {
   syncCanvas = "sync-canvas",
   userJoin = "user-join",
   createRoom = "create-room",
+  message = "message",
 }

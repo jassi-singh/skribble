@@ -1,11 +1,11 @@
 import useCanvasCtx from "@/hooks/useCanvasCtx";
 import useStore from "@/store";
 import {
-  CircleIcon,
-  EraserIcon,
-  Pencil1Icon,
-  ReloadIcon,
-} from "@radix-ui/react-icons";
+  Circle,
+  Eraser,
+  Pencil,
+  ArrowCounterClockwise,
+} from "@phosphor-icons/react";
 import {
   Dispatch,
   MouseEvent,
@@ -265,10 +265,10 @@ const Form = ({
   }, [canvasCtx]);
 
   return (
-    <div className="absolute bottom-4 w-full flex justify-between items-center">
+    <div className="absolute bottom-0 w-full flex justify-between items-center">
       <div className="rounded-md p-4 flex gap-4 dark:bg-zinc-950 bg-white">
         <div className="flex gap-2 items-center">
-          <CircleIcon />
+          <Circle />
           <Input
             max={100}
             min={1}
@@ -287,10 +287,10 @@ const Form = ({
           <SelectContent>
             <SelectGroup>
               <SelectItem value="pencil">
-                <Pencil1Icon />
+                <Pencil />
               </SelectItem>
               <SelectItem value="eraser">
-                <EraserIcon />
+                <Eraser />
               </SelectItem>
             </SelectGroup>
           </SelectContent>
@@ -332,7 +332,7 @@ const Form = ({
       </div>
 
       <Button variant={"outline"} onClick={onReset}>
-        <ReloadIcon />
+        <ArrowCounterClockwise />
       </Button>
     </div>
   );

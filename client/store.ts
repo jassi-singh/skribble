@@ -3,10 +3,12 @@ import { TMsg, TPlayer, TStore } from "@skribble/shared";
 import { io } from "socket.io-client";
 
 const useStore = create<TStore>((set, get) => ({
+  user: null,
   msgList: [],
   players: [],
   timer: 180,
   socket: io("http://localhost:5000"),
+  setUser: (user: TPlayer) => set({ user }),
 
   addMsg: (msg: TMsg) => set((state) => ({ msgList: [...state.msgList, msg] })),
   addPlayers: (players: TPlayer[]) => set({ players: [...players] }),
