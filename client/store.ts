@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TMsg, TPlayer, TStore } from "@skribble/shared";
+import { SocketEvents, TMsg, TPlayer, TStore } from "@skribble/shared";
 import { io } from "socket.io-client";
 
 const useStore = create<TStore>((set, get) => ({
@@ -10,6 +10,7 @@ const useStore = create<TStore>((set, get) => ({
   msgList: [],
   players: [],
   timer: 180,
+  timerId: null,
   socket: io("http://localhost:5000"),
   infoText: null,
   setInfoText: (infoText: string | null) => set({ infoText }),
@@ -30,16 +31,19 @@ const useStore = create<TStore>((set, get) => ({
       const timeLeft = get().timer;
 
       if (timeLeft == 0) {
-        clearInterval(timerId);
         audio.pause();
-        set({ timer: 180 });
+        clearInterval(timerId);
+        set({ timer: 30 });
         return;
       } else if (timeLeft == 9) {
         audio.play();
       }
       set((state) => ({ timer: state.timer - 1 }));
     }, 1000);
+
+    set({ timerId });
   },
+  syncTimer: (time: number) => set({ timer: time }),
   setCurrentWord: (word: string) => set({ currentWord: word }),
 }));
 

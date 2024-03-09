@@ -12,6 +12,7 @@ export interface TMsg {
   id: string | null;
   sender: Pick<TPlayer, "id" | "name">;
   message: string;
+  isCorrect: boolean;
 }
 
 export interface TDrawInfo {
@@ -33,6 +34,7 @@ export interface TStore {
   msgList: TMsg[];
   players: TPlayer[];
   timer: number;
+  timerId: NodeJS.Timeout | null;
   socket: Socket;
   infoText: string | null;
   setInfoText: (text: string | null) => void;
@@ -44,6 +46,7 @@ export interface TStore {
   setCurrentPlayerId: (currentPlayerId: string) => void;
   setRound: (round: number) => void;
   setCurrentWord: (word: string) => void;
+  syncTimer: (time: number) => void;
 }
 
 export interface TRoomInfo {
@@ -52,6 +55,8 @@ export interface TRoomInfo {
   players: TPlayer[];
   currentDrawingInfo: Array<TDrawInfo | "stop">;
   round: number;
+  answeredBy: Set<string>;
+  timeLeft: number;
 }
 
 export enum SocketEvents {
@@ -64,7 +69,10 @@ export enum SocketEvents {
   userJoin = "user-join",
   createRoom = "create-room",
   message = "message",
+  startGame = "start-game",
   showWords = "show-words",
   selectWord = "select-word",
   setInfoText = "set-info-text",
+  syncTimer = "sync-timer",
+  setRound = "set-round",
 }

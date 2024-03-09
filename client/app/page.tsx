@@ -31,6 +31,8 @@ export default function Home() {
   const setCurrentWord = useStore((state) => state.setCurrentWord);
   const setInfoText = useStore((state) => state.setInfoText);
   const addPlayers = useStore((state) => state.addPlayers);
+  const syncTimer = useStore((state) => state.syncTimer);
+  const setRound = useStore((state) => state.setRound);
 
   useEffect(() => {
     const onSelectWord = (wordLength: number, playerId: string) => {
@@ -38,13 +40,25 @@ export default function Home() {
       setCurrentWord("_".repeat(wordLength));
       startTimer();
     };
+
+    const showWords = (words: string[], playerId: string) => {
+      setOpen(true);
+      setWords(words);
+      setCurrentPlayerId(playerId);
+    };
     socket.on(SocketEvents.updatePlayers, addPlayers);
     socket.on(SocketEvents.selectWord, onSelectWord);
     socket.on(SocketEvents.setInfoText, setInfoText);
+    socket.on(SocketEvents.syncTimer, syncTimer);
+    socket.on(SocketEvents.showWords, showWords);
+    socket.on(SocketEvents.setRound, setRound);
     return () => {
       socket.removeListener(SocketEvents.updatePlayers, addPlayers);
       socket.removeListener(SocketEvents.selectWord, onSelectWord);
       socket.removeListener(SocketEvents.setInfoText, setInfoText);
+      socket.removeListener(SocketEvents.syncTimer, syncTimer);
+      socket.removeListener(SocketEvents.showWords, showWords);
+      socket.removeListener(SocketEvents.setRound, setRound);
     };
   }, []);
   return (
@@ -52,7 +66,7 @@ export default function Home() {
       <nav className="w-full">
         <h1 className="text-3xl font-bold">Skribble</h1>
       </nav>
-      <GameInfo setOpen={setOpen} setWords={setWords} />
+      <GameInfo />
       <div className="relative flex-grow w-full grid grid-cols-4 gap-4 overflow-auto">
         <PlayersList />
         <DrawArea />

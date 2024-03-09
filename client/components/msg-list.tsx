@@ -39,7 +39,7 @@ export default MsgList;
 
 const Message = ({ msg }: { msg: TMsg }) => {
   return (
-    <div className="flex gap-4">
+    <div className={`flex gap-4 ${msg.isCorrect && "text-green-500"}`}>
       <div className="italic">{msg.sender.name}:</div>
       <div>{msg.message}</div>
     </div>
@@ -71,6 +71,7 @@ const Form = () => {
         name: user.name,
       },
       message: msg,
+      isCorrect: false,
     };
 
     socket.send(newMsg, roomId);

@@ -4,30 +4,17 @@ import { Button } from "./ui/button";
 import { Clock } from "@phosphor-icons/react";
 import { SocketEvents } from "@skribble/shared";
 import { useSearchParams } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
 
-const GameInfo = ({
-  setOpen,
-  setWords,
-}: {
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  setWords: Dispatch<SetStateAction<string[]>>;
-}) => {
+const GameInfo = () => {
   const timeLeft = useStore((state) => state.timer);
   const user = useStore((state) => state.user);
   const socket = useStore((state) => state.socket);
   const round = useStore((state) => state.round);
-  const setCurrentPlayerId = useStore((state) => state.setCurrentPlayerId);
   const currentWord = useStore((state) => state.currentWord);
   const searchParams = useSearchParams();
   const roomId = searchParams.get("roomId");
   const startGame = () => {
-    const cb = (words: string[], currentPlayerId: string) => {
-      setOpen(true);
-      setWords(words);
-      setCurrentPlayerId(currentPlayerId);
-    };
-    socket.emit(SocketEvents.showWords, roomId, cb);
+    socket.emit(SocketEvents.startGame, roomId);
   };
 
   return (
