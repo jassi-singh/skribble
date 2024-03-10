@@ -3,7 +3,6 @@ import { Socket } from "socket.io-client";
 export interface TPlayer {
   id: string;
   name: string;
-  rank?: number;
   score: number;
   isAdmin: boolean;
 }
@@ -33,6 +32,7 @@ export interface TStore {
   currentWord: string | null;
   msgList: TMsg[];
   players: TPlayer[];
+  answeredBy: Set<String>;
   timer: number;
   timerId: NodeJS.Timeout | null;
   socket: Socket;
@@ -47,6 +47,7 @@ export interface TStore {
   setRound: (round: number) => void;
   setCurrentWord: (word: string) => void;
   syncTimer: (time: number) => void;
+  resetAnsweredBy: () => void;
 }
 
 export interface TRoomInfo {
@@ -57,6 +58,7 @@ export interface TRoomInfo {
   round: number;
   answeredBy: Set<string>;
   timeLeft: number;
+  timerId?: NodeJS.Timeout;
 }
 
 export enum SocketEvents {

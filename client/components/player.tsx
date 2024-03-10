@@ -2,14 +2,20 @@ import { TPlayer } from "@skribble/shared";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Crown, Pencil } from "@phosphor-icons/react";
 import useStore from "@/store";
+import { cn } from "@/lib/utils";
 
-const Player = ({ player }: { player: TPlayer }) => {
+const Player = ({ player, rank = 1 }: { player: TPlayer; rank?: number }) => {
   const isDrawing = useStore((state) => player.id == state.currentPlayerId);
+  const hasGuessed = useStore((state) => state.answeredBy.has(player.id));
+
   return (
-    <div className="flex items-center gap-4">
-      <span className="text-primary/80 text-xl w-10 text-start">
-        #{player.rank}
-      </span>
+    <div
+      className={cn(
+        "flex items-center gap-4 px-4 py-2",
+        hasGuessed && "bg-green-700"
+      )}
+    >
+      <span className="text-primary/80 text-xl w-10 text-start">#{rank}</span>
       <div className="relative">
         <Avatar>
           <AvatarFallback>{player.name[0]}</AvatarFallback>

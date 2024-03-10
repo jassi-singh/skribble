@@ -77,7 +77,8 @@ io.on("connection", (socket) => {
     userToRoom.set(socket.id, roomId);
     const room = rooms.get(roomId);
     rooms.set(roomId, {
-      round: rooms.get(roomId)?.round ?? 1,
+      ...room,
+      round: room?.round ?? 1,
       players: [...(room?.players ?? []), player],
       currentDrawingInfo: room?.currentDrawingInfo ?? [],
       answeredBy: room?.answeredBy ?? new Set(),
@@ -117,15 +118,42 @@ io.on("connection", (socket) => {
   socket.on(SocketEvents.message, (msg: TMsg, roomId: string) => {
     msg.id = uuidv4();
     const room = rooms.get(roomId);
-
     if (room?.currentWord === msg.message) {
       if (room.answeredBy.has(socket.id)) return;
       room.answeredBy.add(socket.id);
+      room.players = room.players.map((player) =>
+        player.id === socket.id
+          ? {
+              ...player,
+              score:
+                player.score +
+                180 -
+                Math.floor((180 - room.timeLeft) / 10) * 10,
+            }
+          : player.id === room.currentPlayerId
+          ? { ...player, score: player.score + 30 }
+          : player
+      );
       rooms.set(roomId, { ...room });
       const guessedMsg = msg;
       guessedMsg.isCorrect = true;
       guessedMsg.message = "guessed it right";
       io.to(roomId).emit(SocketEvents.message, guessedMsg);
+      io.to(roomId).emit(
+        SocketEvents.updatePlayers,
+        rooms.get(roomId)?.players
+      );
+
+      if (room.answeredBy.size === room.players.length - 1) {
+        clearInterval(room.timerId);
+        io.to(roomId).emit(
+          SocketEvents.setInfoText,
+          `The correct word is : ${room.currentWord}`
+        );
+        setTimeout(() => {
+          startGame(roomId);
+        }, 3000);
+      }
     } else {
       io.to(roomId).emit(SocketEvents.message, msg);
     }
@@ -172,6 +200,7 @@ const startTimer = (roomId: string, word: string) => {
       io.to(roomId).emit(SocketEvents.syncTimer, timeLeft);
     }
   }, 10 * 1000);
+  rooms.set(roomId, { ...room, timerId });
 };
 
 const startGame = (roomId: string) => {
@@ -184,13 +213,16 @@ const startGame = (roomId: string) => {
   io.to(roomId).emit(SocketEvents.setRound, room?.round);
 
   rooms.set(roomId, { ...room, answeredBy: new Set() });
+
   const index =
     room.players.findIndex((player) => player.id === room.currentPlayerId) ??
     -1;
 
   const nextPlayer = room.players[(index + 1) % room.players.length];
-  if (index + 1 === room.players.length)
+  if (index + 2 === room.players.length) {
+    const room = rooms.get(roomId)!;
     rooms.set(roomId, { ...room, round: room.round + 1 });
+  }
   io.to(nextPlayer.id).emit(SocketEvents.showWords, words, nextPlayer.id);
 
   io.to(roomId)

@@ -33,12 +33,15 @@ export default function Home() {
   const addPlayers = useStore((state) => state.addPlayers);
   const syncTimer = useStore((state) => state.syncTimer);
   const setRound = useStore((state) => state.setRound);
+  const addMsg = useStore((state) => state.addMsg);
+  const resetAnsweredBy = useStore((state) => state.resetAnsweredBy);
 
   useEffect(() => {
     const onSelectWord = (wordLength: number, playerId: string) => {
       setCurrentPlayerId(playerId);
       setCurrentWord("_".repeat(wordLength));
       startTimer();
+      resetAnsweredBy();
     };
 
     const showWords = (words: string[], playerId: string) => {
@@ -52,6 +55,8 @@ export default function Home() {
     socket.on(SocketEvents.syncTimer, syncTimer);
     socket.on(SocketEvents.showWords, showWords);
     socket.on(SocketEvents.setRound, setRound);
+    socket.on(SocketEvents.message, addMsg);
+
     return () => {
       socket.removeListener(SocketEvents.updatePlayers, addPlayers);
       socket.removeListener(SocketEvents.selectWord, onSelectWord);
@@ -59,6 +64,7 @@ export default function Home() {
       socket.removeListener(SocketEvents.syncTimer, syncTimer);
       socket.removeListener(SocketEvents.showWords, showWords);
       socket.removeListener(SocketEvents.setRound, setRound);
+      socket.removeListener(SocketEvents.message, addMsg);
     };
   }, []);
   return (
@@ -183,6 +189,7 @@ const SelectWordDialog = ({
   const currentPlayerId = useStore((store) => store.currentPlayerId);
   const setCurrentWord = useStore((store) => store.setCurrentWord);
   const startTimer = useStore((store) => store.startTimer);
+  const resetAnsweredBy = useStore((state) => state.resetAnsweredBy);
   const searchParams = useSearchParams();
   const roomId = searchParams.get("roomId");
 
@@ -190,6 +197,7 @@ const SelectWordDialog = ({
     setOpen(false);
     setCurrentWord(word);
     startTimer();
+    resetAnsweredBy();
     socket.emit(SocketEvents.selectWord, word, roomId, currentPlayerId);
   };
 

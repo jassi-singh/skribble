@@ -50,7 +50,6 @@ const Form = () => {
   const searchParams = useSearchParams();
   const roomId = searchParams.get("roomId");
   const [msg, setMsg] = useState("");
-  const addMsg = useStore((state) => state.addMsg);
   const socket = useStore((state) => state.socket);
   const user = useStore((state) => state.user);
   const isDrawing = useStore(
@@ -78,13 +77,6 @@ const Form = () => {
     setMsg("");
   };
 
-  useEffect(() => {
-    socket.on(SocketEvents.message, addMsg);
-
-    return () => {
-      socket.removeListener(SocketEvents.message, addMsg);
-    };
-  }, []);
   return (
     <form className="flex gap-4 sticky bottom-0 bg-white dark:bg-zinc-950 py-4">
       <Input
