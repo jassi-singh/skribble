@@ -19,11 +19,14 @@ import useStore from "@/store";
 import { SocketEvents, TPlayer } from "@skribble/shared";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { DialogTitle } from "@radix-ui/react-dialog";
+import { DialogClose, DialogTitle } from "@radix-ui/react-dialog";
 import GameInfo from "@/components/game-info";
+import Player from "@/components/player";
+import { Cross2Icon } from "@radix-ui/react-icons";
 
 export default function Home() {
   const [open, setOpen] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [words, setWords] = useState<string[]>([]);
   const socket = useStore((state) => state.socket);
   const startTimer = useStore((state) => state.startTimer);
@@ -35,6 +38,7 @@ export default function Home() {
   const setRound = useStore((state) => state.setRound);
   const addMsg = useStore((state) => state.addMsg);
   const resetAnsweredBy = useStore((state) => state.resetAnsweredBy);
+  const stopTimer = useStore((state) => state.stopTimer);
 
   useEffect(() => {
     const onSelectWord = (wordLength: number, playerId: string) => {
@@ -48,14 +52,30 @@ export default function Home() {
       setOpen(true);
       setWords(words);
       setCurrentPlayerId(playerId);
+      stopTimer();
     };
+
+    const showResult = () => {
+      setShowResults(true);
+      resetAnsweredBy();
+      setCurrentPlayerId(null);
+      setCurrentWord(null);
+    };
+
+    const handleInfo = (text: string | null) => {
+      console.log("stoptimer");
+      setInfoText(text);
+      if (text) stopTimer();
+    };
+
     socket.on(SocketEvents.updatePlayers, addPlayers);
     socket.on(SocketEvents.selectWord, onSelectWord);
-    socket.on(SocketEvents.setInfoText, setInfoText);
+    socket.on(SocketEvents.setInfoText, handleInfo);
     socket.on(SocketEvents.syncTimer, syncTimer);
     socket.on(SocketEvents.showWords, showWords);
     socket.on(SocketEvents.setRound, setRound);
     socket.on(SocketEvents.message, addMsg);
+    socket.on(SocketEvents.showResults, showResult);
 
     return () => {
       socket.removeListener(SocketEvents.updatePlayers, addPlayers);
@@ -65,6 +85,7 @@ export default function Home() {
       socket.removeListener(SocketEvents.showWords, showWords);
       socket.removeListener(SocketEvents.setRound, setRound);
       socket.removeListener(SocketEvents.message, addMsg);
+      socket.removeListener(SocketEvents.showResults, showResult);
     };
   }, []);
   return (
@@ -81,6 +102,7 @@ export default function Home() {
           <StartupDialog />
         </Suspense>
         <SelectWordDialog open={open} setOpen={setOpen} words={words} />
+        <ShowResultsDialog open={showResults} setOpen={setShowResults} />
       </div>
     </main>
   );
@@ -212,6 +234,31 @@ const SelectWordDialog = ({
           <Button onClick={handleSelectWord(word)} variant="outline">
             {word}
           </Button>
+        ))}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const ShowResultsDialog = ({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}) => {
+  const players = useStore((state) =>
+    [...state.players].sort((a, b) => b.score - a.score)
+  );
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <Cross2Icon className="h-4 w-4" />
+        </DialogClose>
+        <DialogTitle>Leaderboard </DialogTitle>
+        {players.map((player, id) => (
+          <Player player={player} rank={id + 1} type={"leaderboard"} />
         ))}
       </DialogContent>
     </Dialog>

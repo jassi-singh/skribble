@@ -163,7 +163,7 @@ const DrawArea = () => {
       <Form setIsErasing={setIsErasing} canvasCtx={canvasCtx} roomId={roomId} />
 
       {infoText && (
-        <div className="absolute bottom-0 p-4 w-full h-full flex items-center justify-center bg-white/10 rounded-md border">
+        <div className="absolute bottom-0 p-4 w-full h-full flex items-center justify-center bg-black rounded-md border">
           {infoText}
         </div>
       )}

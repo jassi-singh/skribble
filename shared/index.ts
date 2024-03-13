@@ -43,11 +43,12 @@ export interface TStore {
   updatePlayer: (player: TPlayer) => void;
   startTimer: () => void;
   setUser: (user: TPlayer) => void;
-  setCurrentPlayerId: (currentPlayerId: string) => void;
+  setCurrentPlayerId: (currentPlayerId: string | null) => void;
   setRound: (round: number) => void;
-  setCurrentWord: (word: string) => void;
+  setCurrentWord: (word: string | null) => void;
   syncTimer: (time: number) => void;
   resetAnsweredBy: () => void;
+  stopTimer: () => void;
 }
 
 export interface TRoomInfo {
@@ -77,4 +78,5 @@ export enum SocketEvents {
   setInfoText = "set-info-text",
   syncTimer = "sync-timer",
   setRound = "set-round",
+  showResults = "show-results",
 }

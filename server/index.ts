@@ -207,6 +207,18 @@ const startGame = (roomId: string) => {
   const room = rooms.get(roomId);
   if (!room) return;
 
+  if (room.round === 4) {
+    io.to(roomId).emit(SocketEvents.showResults, room.players);
+    room.players.map((player) => {
+      player.score = 0;
+      return player;
+    });
+    room.round = 1;
+
+    rooms.set(roomId, room);
+    return;
+  }
+
   const words = ["fire", "water", "snake"];
   io.to(roomId).emit(SocketEvents.setInfoText, null);
   io.to(roomId).emit(SocketEvents.resetCanvas);

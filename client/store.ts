@@ -17,7 +17,8 @@ const useStore = create<TStore>((set, get) => ({
   setInfoText: (infoText: string | null) => set({ infoText }),
   setRound: (round: number) => set({ round }),
   setUser: (user: TPlayer) => set({ user }),
-  setCurrentPlayerId: (currentPlayerId: string) => set({ currentPlayerId }),
+  setCurrentPlayerId: (currentPlayerId: string | null) =>
+    set({ currentPlayerId }),
   addMsg: (msg: TMsg) => {
     set((state) => ({ msgList: [...state.msgList, msg] }));
     if (msg.isCorrect) {
@@ -31,18 +32,18 @@ const useStore = create<TStore>((set, get) => ({
     })),
   startTimer: () => {
     const tid = get().timerId;
-    set({timer: 180})
+    set({ timer: 180 });
     if (tid) clearInterval(tid);
     const audio = new Audio("/tick.mp3");
     audio.loop = true;
     audio.volume = 0.3;
+    console.log("start timer");
     const timerId = setInterval(() => {
       const timeLeft = get().timer;
 
       if (timeLeft == 0) {
         audio.pause();
-        clearInterval(timerId);
-        set({ timer:180 });
+        get().stopTimer();
         return;
       } else if (timeLeft == 9) {
         audio.play();
@@ -53,7 +54,14 @@ const useStore = create<TStore>((set, get) => ({
     set({ timerId });
   },
   syncTimer: (time: number) => set({ timer: time }),
-  setCurrentWord: (word: string) => set({ currentWord: word }),
+  stopTimer: () => {
+    const timerId = get().timerId;
+    if (timerId) {
+      clearInterval(timerId);
+      set({ timer: 180 });
+    }
+  },
+  setCurrentWord: (word: string | null) => set({ currentWord: word }),
   resetAnsweredBy: () => set({ answeredBy: new Set() }),
 }));
 
