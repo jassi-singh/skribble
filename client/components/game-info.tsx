@@ -11,10 +11,12 @@ const GameInfo = () => {
   const socket = useStore((state) => state.socket);
   const round = useStore((state) => state.round);
   const currentWord = useStore((state) => state.currentWord);
+  const resetScores = useStore((state) => state.resetScores);
   const searchParams = useSearchParams();
   const roomId = searchParams.get("roomId");
   const startGame = () => {
     socket.emit(SocketEvents.startGame, roomId);
+    resetScores();
   };
 
   return (

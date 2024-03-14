@@ -49,6 +49,7 @@ export interface TStore {
   syncTimer: (time: number) => void;
   resetAnsweredBy: () => void;
   stopTimer: () => void;
+  resetScores: () => void;
 }
 
 export interface TRoomInfo {

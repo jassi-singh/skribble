@@ -63,6 +63,12 @@ const useStore = create<TStore>((set, get) => ({
   },
   setCurrentWord: (word: string | null) => set({ currentWord: word }),
   resetAnsweredBy: () => set({ answeredBy: new Set() }),
+  resetScores: () => {
+    const players = get().players;
+    set({
+      players: [...players.map((player) => ({ ...player, score: 0 }))],
+    });
+  },
 }));
 
 export default useStore;
