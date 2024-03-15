@@ -11,7 +11,7 @@ const Player = ({
 }: {
   player: TPlayer;
   rank?: number;
-  type: "leaderboard" | "list";
+  type?: "leaderboard" | "list";
 }) => {
   const isDrawing = useStore((state) => player.id == state.currentPlayerId);
   const hasGuessed = useStore((state) => state.answeredBy.has(player.id));

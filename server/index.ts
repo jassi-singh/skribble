@@ -7,10 +7,12 @@ import {
 } from "@skribble/shared";
 import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
+import * as dotenv from "dotenv";
+dotenv.config();
 
-const io = new Server(5000, {
+const io = new Server(Number(process.env.PORT), {
   cors: {
-    origin: ["http://localhost:3000"],
+    origin: [String(process.env.ORIGIN)],
   },
 });
 
@@ -32,6 +34,7 @@ io.on("connection", (socket) => {
 
       if (rooms.get(roomId)?.players.length == 0) {
         rooms.delete(roomId);
+        clearInterval(room.timerId);
       }
       socket.broadcast
         .to(roomId)

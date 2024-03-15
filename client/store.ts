@@ -11,7 +11,7 @@ const useStore = create<TStore>((set, get) => ({
   players: [],
   timer: 180,
   timerId: null,
-  socket: io("http://localhost:5000"),
+  socket: io(String(process.env.NEXT_PUBLIC_SERVER)),
   infoText: null,
   answeredBy: new Set(),
   setInfoText: (infoText: string | null) => set({ infoText }),

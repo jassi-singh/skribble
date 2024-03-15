@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@skribble/shared": "workspace:^",
+    "dotenv": "^16.4.5",
     "socket.io": "^4.7.4",
     "uuid": "^9.0.1"
   },
