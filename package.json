@@ -7,9 +7,10 @@
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r --parallel run build",
     "start": "pnpm -r --parallel run start",
-    "build:client": "pnpm --filter client run build",
+    "build:shared": "pnpm --filter shared run build",
+    "build:client": "pnpm build:shared && pnpm --filter client run build",
     "start:client": "pnpm --filter client run start",
-    "build:server": "pnpm --filter server run build",
+    "build:server": "pnpm build:shared && pnpm --filter server run build",
     "start:server": "pnpm --filter server run start"
   },
   "keywords": [],
