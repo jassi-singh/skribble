@@ -4,9 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm run --parallel dev",
-    "build": "pnpm run --parallel build",
-    "start": "pnpm run --parallel start"
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r --parallel run build",
+    "start": "pnpm -r --parallel run start",
+    "build:client": "pnpm --filter client run build",
+    "start:client": "pnpm --filter client run start",
+    "build:server": "pnpm --filter server run build",
+    "start:server": "pnpm --filter server run start"
   },
   "keywords": [],
   "author": "",

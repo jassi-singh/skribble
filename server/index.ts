@@ -23,6 +23,8 @@ io.on("connection", (socket) => {
   console.log("user conncected", socket.id);
 
   socket.on("disconnect", () => {
+    console.log("user conncected", socket.id);
+
     const roomId = userToRoom.get(socket.id)!;
     const room = rooms.get(roomId);
 
